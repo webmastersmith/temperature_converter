@@ -104,3 +104,7 @@ dist
 .tern-port
 
 package-lock.json
+.prettierignore
+postcss.config.js
+tailwind.config.js
+webpack.config.js
