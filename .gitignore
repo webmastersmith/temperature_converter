@@ -103,8 +103,11 @@ dist
 # TernJS port file
 .tern-port
 
+*.config.js
+
 package-lock.json
-.prettierignore
-postcss.config.js
-tailwind.config.js
-webpack.config.js
+
+*ignore
+
+
+temperature_converter_wire_frame.png
