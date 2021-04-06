@@ -1,47 +1,62 @@
 import hh from "hyperscript-helpers"
 import { h } from "virtual-dom"
-import { convertCtoF } from "./Controller"
+import { changeTemp, changeUnit } from "./Controller"
+import * as R from "ramda"
 
 const { pre, h1, div, i, span, form, input, select, option } = hh(h)
 
-function getSide() {}
+// captilize first letter and lowercase rest of word.
+const captilize = R.converge(R.concat, [
+	R.pipe(R.head, R.toUpper),
+	R.pipe(R.tail, R.toLower),
+])
 
-// create input box and drop down.
-function inputColumn(css, id, dispatch, model) {
-	const { leftValue, leftUnit, rightValue, rightUnit, sourceLeft } = model
-	return div({ className: css }, [
-		input({
-			className: `border border-black block w-100 mb-4 p-2`,
-			type: "text",
-			id,
-			value: id === "left" ? leftValue : rightValue,
-			oninput: (e) => dispatch(convertCtoF(e.target.value)),
-		}),
-		select(
-			{
-				className: `block w-100 border border-black p-2`,
-				id,
-				onchange: () => {
-					const side = document.getElementById(id)["id"]
-					const unit = document.getElementById(id).value
-					console.log({ side, unit })
-				},
+function inputBox(id, dispatch, model) {
+	const { leftValue, rightValue } = model
+	return input({
+		className: `border border-black block w-100 mb-4 p-2`,
+		type: "text",
+		id: id,
+		value: id === "left" ? leftValue : rightValue,
+		oninput: (e) => {
+			const side = document.getElementById(id)["id"]
+			return dispatch(changeTemp({ num: e.target.value, side }))
+		},
+	})
+}
+
+function selectBox(id, dispatch, model) {
+	const leftOption = ["CELSIUS", "FARENHEIT", "KELVIN"]
+	const rightOption = ["FARENHEIT", "CELSIUS", "KELVIN"]
+	const optionArr = id === "left" ? leftOption : rightOption
+	return select(
+		{
+			className: `block w-100 border border-black p-2`,
+			id: id + "Select",
+			onchange: () => {
+				const side = document.getElementById(id)["id"]
+				const unit = document.getElementById(id + "Select").value
+				return dispatch(changeUnit({ side, unit }))
 			},
-			// prettier-ignore
-			[
-				option({ className: ``, value: "celsius"}, leftUnit),
-				option({ className: ``, value: "fahrenheit"}, rightUnit),
-			]
-		),
+		},
+		// create options array
+		R.map((unit) => option({ value: unit }, captilize(unit)))(optionArr)
+	)
+}
+
+// create inputBox and selectBox column.
+function inputColumn(css, id, dispatch, model) {
+	const { leftValue, rightValue } = model
+	return div({ className: css }, [
+		inputBox(id, dispatch, model),
+		selectBox(id, dispatch, model),
 	])
 }
 
 function tempertureForm(dispatch, model) {
 	return form({ className: `` }, [
 		inputColumn(`w-40 inline-block float-left`, "left", dispatch, model),
-		div({ className: `w-20 inline-block h-100 text-center py-2` }, [
-			span({ className: `` }, "="),
-		]),
+		div({ className: `w-20 inline-block h-100 text-center py-2` }, span("=")),
 		inputColumn(`w-40 inline-block float-right`, "right", dispatch, model),
 	])
 }
